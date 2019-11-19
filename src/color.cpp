@@ -74,3 +74,19 @@ Color Color::operator-(const Color &other) const
         (uint8_t)(MAX(0, b - other.b)),
     };
 }
+
+Color color_blend(std::initializer_list<Color> colors)
+{
+    int r = 0, g = 0, b = 0;
+    for (auto &c : colors) {
+        r += c.r;
+        g += c.g;
+        b += c.b;
+    }
+    int size = colors.size();
+    return {
+        (uint8_t)(r / size),
+        (uint8_t)(g / size),
+        (uint8_t)(b / size),
+    };
+}

@@ -2,6 +2,7 @@
 #define _COLOR_H
 
 #include <cstdint>
+#include <initializer_list>
 
 typedef struct Color {
     uint8_t r;
@@ -20,5 +21,7 @@ typedef struct Color {
     Color operator+(const Color &) const;
     Color operator-(const Color &) const;
 } Color;
+
+Color color_blend(std::initializer_list<Color>);
 
 #endif
