@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <initializer_list>
 
-typedef struct Color {
+struct Color {
     uint8_t r;
     uint8_t g;
     uint8_t b;
@@ -20,7 +20,7 @@ typedef struct Color {
     Color operator/(uint8_t) const;
     Color operator+(const Color &) const;
     Color operator-(const Color &) const;
-} Color;
+};
 
 Color color_blend(std::initializer_list<Color>);
 

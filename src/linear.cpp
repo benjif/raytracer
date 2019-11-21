@@ -64,6 +64,15 @@ XYZ XYZ::operator-(const XYZ &other) const
     };
 }
 
+XYZ XYZ::operator-() const
+{
+    return {
+        -x,
+        -y,
+        -z,
+    };
+}
+
 double dot(const XYZ &a, const XYZ &b)
 {
     return a.x * b.x +

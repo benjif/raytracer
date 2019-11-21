@@ -1,3 +1,4 @@
+#include <iostream>
 #include "color.h"
 
 #define MAX(a, b) (a > b ? a : b)
