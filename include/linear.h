@@ -9,6 +9,9 @@ struct XYZ {
     XYZ();
     XYZ(double, double, double);
 
+    XYZ normal() const;
+    double magnitude() const;
+
     XYZ operator+(double) const;
     XYZ operator-(double) const;
     XYZ operator*(double) const;
@@ -18,7 +21,8 @@ struct XYZ {
     XYZ operator-() const;
 };
 
-double dot(const XYZ &a, const XYZ &b);
-double distance(const XYZ &a, const XYZ &b);
+double dot(const XYZ &, const XYZ &);
+XYZ cross(const XYZ &, const XYZ &);
+double distance(const XYZ &, const XYZ &);
 
 #endif

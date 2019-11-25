@@ -73,11 +73,37 @@ XYZ XYZ::operator-() const
     };
 }
 
+double XYZ::magnitude() const
+{
+    return sqrt(pow(x, 2) +
+                pow(y, 2) +
+                pow(z, 2));
+}
+
+XYZ XYZ::normal() const
+{
+    double mag = magnitude();
+    return {
+        x / mag,
+        y / mag,
+        z / mag,
+    };
+}
+
 double dot(const XYZ &a, const XYZ &b)
 {
     return a.x * b.x +
            a.y * b.y +
            a.z * b.z;
+}
+
+XYZ cross(const XYZ &a, const XYZ &b)
+{
+    return {
+        a.y * b.z - a.z * b.y,
+        a.x * b.z - a.z * b.x,
+        a.x * b.y - a.y * b.x,
+    };
 }
 
 double distance(const XYZ &a, const XYZ &b)

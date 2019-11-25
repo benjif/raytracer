@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <initializer_list>
 
+#define MAX(a, b) (a > b ? a : b)
+#define MIN(a, b) (a < b ? a : b)
+
 struct Color {
     uint8_t r;
     uint8_t g;
