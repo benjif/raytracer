@@ -4,10 +4,11 @@
 #include "color.h"
 #include "linear.h"
 
+// TODO customizable lights
 struct PointLight {
     XYZ source;
-    Color color;
-    double intensity;
+    //Color color;
+    //double intensity;
 };
 
 #endif

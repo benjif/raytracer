@@ -2,7 +2,7 @@ SRC := $(wildcard src/*.cpp)
 
 $(shell mkdir -p build)
 newrt: $(SRC)
-	g++ -o build/raytracer $(SRC) `libpng-config --cflags` -lpng -Wall -g -Iinclude -O2 -Wno-parentheses
+	g++ -o build/raytracer $(SRC) `libpng-config --cflags` -lpng -Wall -g -Iinclude -O2 -Wno-parentheses -ffast-math
 
 clean:
 	rm build/raytracer

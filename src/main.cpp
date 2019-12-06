@@ -5,8 +5,8 @@ int main(int, char **)
     Raytracer raytracer(480, 480);
 
     raytracer.add_form(Wall {
-        { 255, 255, 255 },
-        0.8,
+        { 240, 240, 240 },
+        0.6,
         1.8,
         0,
         { 0, 480, 0 },
@@ -14,9 +14,9 @@ int main(int, char **)
     });
 
     raytracer.add_form(Wall {
-        { 255, 255, 255 },
-        0.8,
-        1.8,
+        { 240, 240, 240 },
+        0.6,
+        1,
         0,
         { 0, 0, 0 },
         { 0, 1, 0 },
@@ -24,16 +24,16 @@ int main(int, char **)
 
     raytracer.add_form(Wall {
         { 240, 240, 240 },
-        0.6,
-        3.4,
+        0.8,
+        1.6,
         0,
-        { 0, 0, 550 },
-        { 0, 0, 549 },
+        { 0, 0, 650 },
+        { 0, 0, 649 },
     });
 
     raytracer.add_form(Wall {
-        { 70, 250, 80 },
-        0.8,
+        { 80, 250, 70 },
+        0.6,
         1.8,
         0,
         { 480, 0, 0 },
@@ -42,7 +42,7 @@ int main(int, char **)
 
     raytracer.add_form(Wall {
         { 250, 70, 80 },
-        0.6,
+        0.5,
         1.8,
         0,
         { 0, 0, 0 },
@@ -50,8 +50,8 @@ int main(int, char **)
     });
 
     raytracer.add_form(Wall {
-        { 255, 255, 255 },
-        0.6,
+        { 250, 250, 250 },
+        0.5,
         1.8,
         0,
         { 0, 0, -720 },
@@ -63,7 +63,7 @@ int main(int, char **)
         0.9,
         2.4,
         0,
-        { 480 / 2 - 60, 380, 340 },
+        { 480 / 2 - 60, 380, 320 },
         100,
     });
 
@@ -72,7 +72,7 @@ int main(int, char **)
         0.9,
         2.4,
         0,
-        { 480 / 2 + 10, 480 - 50, 170 },
+        { 480 / 2 + 10, 480 - 50, 160 },
         50,
     });
 
@@ -88,12 +88,12 @@ int main(int, char **)
     });
     */
 
-    raytracer.set_pixel_sample_size(2);
+    raytracer.set_pixel_sample_size(5);
     raytracer.set_reflection_depth(3);
     raytracer.set_shadow_unit_size(24);
     raytracer.set_shadow_grid_size(8);
 
-    raytracer.set_light({480 - 50, 50, -400});
+    raytracer.set_light({480 - 70, 70, -400});
     raytracer.set_background({213, 210, 210});
 
     raytracer.render();

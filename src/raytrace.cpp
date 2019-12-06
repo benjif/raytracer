@@ -6,7 +6,7 @@
 #include <png++/png.hpp>
 #include "raytrace.h"
 
-#define EPSILON 1e-4
+#define EPSILON 1e-3
 
 static inline void clamp(double &v, double min, double max)
 {
@@ -132,7 +132,7 @@ Raytracer::Raytracer(unsigned w, unsigned h)
     : m_width(w),
       m_height(h),
       m_image(w, h),
-      m_camera(w/2, h/2, -400)
+      m_camera(w/2, h/2, -620)
 {
     srand(time(NULL));
 }
@@ -221,7 +221,7 @@ Color Raytracer::diffuse(const Color &c, const XYZ &hit, const XYZ &norm)
     double light_mag = distance(m_light, hit);
     XYZ unit_light = (m_light - hit) / light_mag;
     double compute_factor = dot(norm, unit_light);
-    Color diffuse_color = c * 0.6 * m_diffuse * compute_factor +
+    Color diffuse_color = /*0.6 **/ c * m_diffuse * compute_factor +
         c * m_ambient;
     double sight_mag = distance(hit, m_camera);
     XYZ unit_sight = (hit - m_camera) / sight_mag;
@@ -230,7 +230,7 @@ Color Raytracer::diffuse(const Color &c, const XYZ &hit, const XYZ &norm)
     double specular_amount = std::pow(std::max(0.0, dot(norm, unit_bisect)),
             m_specular_size);
     Color specular_color = Color{ 255, 255, 255 } * (specular_amount * m_specular);
-    return diffuse_color + specular_color;
+    return diffuse_color * (1 - specular_amount) + specular_color;
 }
 
 double Raytracer::shadow_amount(const XYZ &hit)

@@ -60,10 +60,10 @@ private:
     Color diffuse(const Color &, const XYZ &, const XYZ &);
     double shadow_amount(const XYZ &);
 
-    double m_diffuse { 0.9 };
-    double m_ambient { 0.3 };
-    double m_specular { 0.25 };
-    double m_specular_size { 20 };
+    double m_diffuse { 0.6 };
+    double m_ambient { 0.28 };
+    double m_specular { 0.1 };
+    double m_specular_size { 90 };
 
     unsigned m_reflection_depth { 4 };
 
