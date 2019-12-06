@@ -57,14 +57,15 @@ private:
     std::vector<Wall> m_walls;
     std::vector<Triangle> m_triangles;
 
+    Color diffuse(const Color &, const XYZ &, const XYZ &);
     double shadow_amount(const XYZ &);
 
-    double m_diffuse { 0.7 };
-    double m_ambient { 0.26 };
-    double m_specular { 0.5 };
-    double m_specular_size { 10 };
+    double m_diffuse { 0.9 };
+    double m_ambient { 0.3 };
+    double m_specular { 0.25 };
+    double m_specular_size { 20 };
 
-    unsigned m_reflection_depth { 3 };
+    unsigned m_reflection_depth { 4 };
 
     double m_shadow_unit_size { 12.0 };
     unsigned m_shadow_grid_size { 12 };

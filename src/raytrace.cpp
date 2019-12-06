@@ -23,6 +23,8 @@ std::pair<XYZ, Form *> Raytracer::intersect(const XYZ &from, const XYZ &to)
 
     double a = dot(delta, delta);
     double closest_t = std::numeric_limits<double>::max();
+
+    // Intersect spheres
     for (auto &sphere : m_spheres) {
         double b = dot(delta * 2, from - sphere.position);
         double c = dot(sphere.position, sphere.position) +
@@ -38,6 +40,7 @@ std::pair<XYZ, Form *> Raytracer::intersect(const XYZ &from, const XYZ &to)
         }
     }
 
+    // Intersect walls
     for (auto &wall : m_walls) {
         float denom = dot(wall.normal, delta);
         if (fabs(denom) > EPSILON) {
@@ -49,6 +52,7 @@ std::pair<XYZ, Form *> Raytracer::intersect(const XYZ &from, const XYZ &to)
         }
     }
 
+    // Moller-Trumbore triangle intersection
     for (auto &tri : m_triangles) {
         XYZ h = cross(delta, tri.edges[1]);
         double a = dot(h, tri.edges[0]);
@@ -128,7 +132,7 @@ Raytracer::Raytracer(unsigned w, unsigned h)
     : m_width(w),
       m_height(h),
       m_image(w, h),
-      m_camera(w/2, h/2, -700)
+      m_camera(w/2, h/2, -400)
 {
     srand(time(NULL));
 }
@@ -166,7 +170,8 @@ Wall::Wall()
 {
 }
 
-static bool xyz_ccw_cmp(const XYZ &center, const XYZ &a, const XYZ &b)
+// Determine which point is "more clockwise / less counter-clockwise"
+static bool xyz_cw_cmp(const XYZ &center, const XYZ &a, const XYZ &b)
 {
     int dax = (a.x - center.x) > 0 ? 1 : 0;
     int day = (a.y - center.y) > 0 ? 1 : 0;
@@ -199,8 +204,9 @@ Triangle::Triangle(
     transmittance = tran;
     position = (v1 + v2 + v3) / 3;
     auto cmp_func = [&](const XYZ &a, const XYZ &b) {
-        return xyz_ccw_cmp(position, a, b);
+        return xyz_cw_cmp(position, a, b);
     };
+    // Sort vertices clockwise around triangle's center
     std::sort(vertices, vertices + 3, cmp_func);
     edges[0] = vertices[1] - vertices[0];
     edges[1] = vertices[2] - vertices[0];
@@ -210,11 +216,29 @@ Triangle::Triangle()
 {
 }
 
+Color Raytracer::diffuse(const Color &c, const XYZ &hit, const XYZ &norm)
+{
+    double light_mag = distance(m_light, hit);
+    XYZ unit_light = (m_light - hit) / light_mag;
+    double compute_factor = dot(norm, unit_light);
+    Color diffuse_color = c * 0.6 * m_diffuse * compute_factor +
+        c * m_ambient;
+    double sight_mag = distance(hit, m_camera);
+    XYZ unit_sight = (hit - m_camera) / sight_mag;
+    double combined_mag = (unit_light + unit_sight).magnitude();
+    XYZ unit_bisect = (unit_light + unit_sight) / combined_mag;
+    double specular_amount = std::pow(std::max(0.0, dot(norm, unit_bisect)),
+            m_specular_size);
+    Color specular_color = Color{ 255, 255, 255 } * (specular_amount * m_specular);
+    return diffuse_color + specular_color;
+}
+
 double Raytracer::shadow_amount(const XYZ &hit)
 {
     double shadow_hits = 0;
     for (unsigned sx = 0; sx < m_shadow_grid_size; sx++) {
         for (unsigned sy = 0; sy < m_shadow_grid_size; sy++) {
+            // Random component for anti-color banding
             auto antiband = rand() % (int)m_shadow_unit_size - m_shadow_unit_size/2;
             XYZ shadow_grid_spot = {
                 m_light.x+((double)sx-m_shadow_grid_size/2)*m_shadow_unit_size + antiband,
@@ -224,12 +248,13 @@ double Raytracer::shadow_amount(const XYZ &hit)
             auto shadow_hit = intersect(hit, shadow_grid_spot);
             if (shadow_hit.second != nullptr &&
                     distance(shadow_hit.first, hit) < distance(hit, m_light))
-                shadow_hits += 1 - shadow_hit.second->transmittance;
+                shadow_hits += MAX(0.3, 1 - shadow_hit.second->transmittance);
         }
     }
     return shadow_hits / (m_shadow_grid_size * m_shadow_grid_size);
 }
 
+// Calculate fresnel effect
 static double fresnel_amount(const XYZ &delta, const XYZ &norm, double ior)
 {
     double cos_i = dot(delta, norm);
@@ -239,7 +264,6 @@ static double fresnel_amount(const XYZ &delta, const XYZ &norm, double ior)
     if (cos_i > 0) std::swap(eta_i, eta_t);
 
     double sin_t = eta_i / eta_t * sqrt(MAX(0, 1 - cos_i * cos_i));
-
     if (sin_t >= 1) {
         return 1;
     } else {
@@ -260,21 +284,9 @@ Color Sphere::render(
     unsigned depth
 ){
     XYZ unit_norm = (hit - position) / radius;
-    double dot_norm = dot(delta, unit_norm);
-    double light_mag = distance(rt->m_light, hit);
-    XYZ unit_light = (rt->m_light - hit) / light_mag;
-    double compute_factor = dot(unit_norm, unit_light);
-    Color diffuse_color = color * 0.5 * rt->m_diffuse * compute_factor +
-        color * rt->m_ambient;
-    double sight_mag = distance(hit, rt->m_camera);
-    XYZ unit_sight = (hit - rt->m_camera) / sight_mag;
-    double combined_mag = distance({ 0, 0, 0 }, unit_light + unit_sight);
-    XYZ unit_bisect = (unit_light + unit_sight) / combined_mag;
-    double specular_amount = std::pow(std::max(0.0, dot(unit_norm, unit_bisect)),
-            rt->m_specular_size);
-    Color specular_color = color * (specular_amount * rt->m_specular);
-    Color out_color = diffuse_color + specular_color;
+    Color out_color = rt->diffuse(color, hit, unit_norm);
     double fresnel = fresnel_amount(delta, unit_norm, refractive_index);
+    double dot_norm = dot(delta, unit_norm);
     if (depth > 0 && reflectance > 0) {
         XYZ eps_norm = unit_norm * EPSILON;
         XYZ delta_reflect = delta - unit_norm * 2 * dot_norm;
@@ -289,7 +301,7 @@ Color Sphere::render(
             unit_norm = -unit_norm;
             dot_norm = -dot_norm;
         }
-        XYZ bias = unit_norm * 1e-4;
+        XYZ bias = unit_norm * 1e-8;
         double cos_i = dot(delta, unit_norm);
         clamp(cos_i, -1, 1);
         double eta_i = 1, eta_t = refractive_index;
@@ -298,7 +310,8 @@ Color Sphere::render(
         double r_amount = MAX(0, 1 - eta * eta * (1 - cos_i * cos_i));
         if (r_amount > 0) {
             XYZ dir = delta * eta + unit_norm * (eta * cos_i - sqrt(r_amount));
-            Color refract_color = rt->cast_ray(outside ? hit - bias : hit + bias, hit + dir, depth - 1);
+            Color refract_color =
+                rt->cast_ray(outside ? hit - bias : hit + bias, hit + dir, depth - 1, false);
             out_color = out_color * (1 - transmittance) +
                 refract_color * (1 - fresnel) * transmittance;
         }
@@ -314,27 +327,16 @@ Color Wall::render(
     unsigned depth
 ){
     XYZ unit_norm = normal - position;
-    XYZ eps_norm = unit_norm * EPSILON;
-    double dot_norm = dot(unit_norm, delta);
-    double light_mag = distance(rt->m_light, hit);
-    XYZ unit_light = (rt->m_light - hit) / light_mag;
-    double compute_factor = dot(unit_norm, unit_light);
-    Color diffuse_color = color * 0.5 * rt->m_diffuse * compute_factor +
-        color * rt->m_ambient;
-    double sight_mag = distance(hit, rt->m_camera);
-    XYZ unit_sight = (hit - rt->m_camera) / sight_mag;
-    double combined_mag = distance({0, 0, 0}, unit_light + unit_sight);
-    XYZ unit_bisect = (unit_light + unit_sight) / combined_mag;
-    double specular_amount = std::pow(std::max(0.0, dot(unit_norm, unit_bisect)),
-            rt->m_specular_size);
-    Color specular_color = color * (specular_amount * rt->m_specular);
-    Color out_color = diffuse_color + specular_color;
+    Color out_color = rt->diffuse(color, hit, unit_norm);
     double fresnel = fresnel_amount(delta, unit_norm, refractive_index);
     if (depth > 0 && reflectance > 0) {
+        XYZ eps_norm = unit_norm * EPSILON;
+        double dot_norm = dot(unit_norm, delta);
         XYZ delta_reflect = delta - unit_norm * 2 * dot_norm;
-        Color reflect_color = rt->cast_ray(hit + eps_norm, hit + delta_reflect, depth - 1, true);
-        out_color = out_color
-            + reflect_color * reflectance * fresnel;
+        Color reflect_color =
+            rt->cast_ray(hit + eps_norm, hit + delta_reflect, depth - 1, true);
+        out_color = out_color +
+            reflect_color * reflectance * fresnel;
     }
     double shadow_amount = rt->shadow_amount(hit);
     return out_color * (1 - shadow_amount) + color * rt->m_ambient * shadow_amount;
@@ -347,27 +349,16 @@ Color Triangle::render(
     unsigned depth
 ){
     XYZ unit_norm = cross(edges[0], edges[1]).normal();
-    XYZ eps_norm = unit_norm * EPSILON;
-    double dot_norm = dot(unit_norm, delta);
-    double light_mag = distance(rt->m_light, hit);
-    XYZ unit_light = (rt->m_light - hit) / light_mag;
-    double compute_factor = dot(unit_norm, unit_light);
-    Color diffuse_color = color * 0.5 * rt->m_diffuse * compute_factor +
-        color * rt->m_ambient;
-    double sight_mag = distance(hit, rt->m_camera);
-    XYZ unit_sight = (hit - rt->m_camera) / sight_mag;
-    double combined_mag = distance({ 0, 0, 0 }, unit_light + unit_sight);
-    XYZ unit_bisect = (unit_light + unit_sight) / combined_mag;
-    double specular_amount = std::pow(std::max(0.0, dot(unit_norm, unit_bisect)),
-            rt->m_specular_size);
-    Color specular_color = color * (specular_amount * rt->m_specular);
-    Color out_color = diffuse_color + specular_color;
+    Color out_color = rt->diffuse(color, hit, unit_norm);
     double fresnel = fresnel_amount(delta, unit_norm, refractive_index);
     if (depth > 0 && reflectance > 0) {
+        XYZ eps_norm = unit_norm * EPSILON;
+        double dot_norm = dot(unit_norm, delta);
         XYZ delta_reflect = delta - unit_norm * 2 * dot_norm;
-        Color reflect_color = rt->cast_ray(hit + eps_norm, hit + delta_reflect, depth - 1, true);
-        out_color = out_color
-            + reflect_color * reflectance * fresnel;
+        Color reflect_color =
+            rt->cast_ray(hit + eps_norm, hit + delta_reflect, depth - 1, true);
+        out_color = out_color +
+            reflect_color * reflectance * fresnel;
     }
     double shadow_amount = rt->shadow_amount(hit);
     return out_color * (1 - shadow_amount) + color * rt->m_ambient * shadow_amount;

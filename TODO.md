@@ -1,5 +1,6 @@
 # Todo
     - Fix triangle orientation
-    - Fix refraction
     - Color blend properly for all types of additional shading
+    - Add multiple light-source support
+    - Add directional lights
 
