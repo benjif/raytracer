@@ -6,7 +6,7 @@ struct XYZ {
     double y;
     double z;
 
-    XYZ();
+    XYZ() = default;
     XYZ(double, double, double);
 
     XYZ normal() const;

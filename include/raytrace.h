@@ -93,21 +93,21 @@ struct Form {
 };
 
 struct Sphere : Form {
-    Sphere();
+    Sphere() = default;
     Sphere(const Color &, double, double, double, const XYZ &, double);
     Color render(Raytracer *, const XYZ &, const XYZ &, unsigned) override;
     double radius;
 };
 
 struct Wall : Form {
-    Wall();
+    Wall() = default;
     Wall(const Color &, double, double, double, const XYZ &, const XYZ &);
     Color render(Raytracer *, const XYZ &, const XYZ &, unsigned) override;
     XYZ normal;
 };
 
 struct Triangle : Form {
-    Triangle();
+    Triangle() = default;
     Triangle(const Color &, double, double, double, const XYZ &, const XYZ &, const XYZ &);
     Color render(Raytracer *, const XYZ &, const XYZ &, unsigned) override;
     XYZ vertices[3];

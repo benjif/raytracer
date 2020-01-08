@@ -6,7 +6,7 @@
 #include <png++/png.hpp>
 #include "raytrace.h"
 
-#define EPSILON 1e-3
+#define EPSILON 1e-4
 
 static inline void clamp(double &v, double min, double max)
 {
@@ -152,10 +152,6 @@ Sphere::Sphere(const Color &c, double refl, double refr, double tran, const XYZ 
     position = pos;
 }
 
-Sphere::Sphere()
-{
-}
-
 Wall::Wall(const Color &c, double refl, double refr, double tran, const XYZ &pos, const XYZ &norm)
     : normal(norm)
 {
@@ -164,10 +160,6 @@ Wall::Wall(const Color &c, double refl, double refr, double tran, const XYZ &pos
     refractive_index = refr;
     transmittance = tran;
     position = pos;
-}
-
-Wall::Wall()
-{
 }
 
 // Determine which point is "more clockwise / less counter-clockwise"
@@ -212,10 +204,6 @@ Triangle::Triangle(
     edges[1] = vertices[2] - vertices[0];
 }
 
-Triangle::Triangle()
-{
-}
-
 Color Raytracer::diffuse(const Color &c, const XYZ &hit, const XYZ &norm)
 {
     double light_mag = distance(m_light, hit);
@@ -235,6 +223,7 @@ Color Raytracer::diffuse(const Color &c, const XYZ &hit, const XYZ &norm)
 
 double Raytracer::shadow_amount(const XYZ &hit)
 {
+    if (m_shadow_grid_size == 0) return 0;
     double shadow_hits = 0;
     for (unsigned sx = 0; sx < m_shadow_grid_size; sx++) {
         for (unsigned sy = 0; sy < m_shadow_grid_size; sy++) {

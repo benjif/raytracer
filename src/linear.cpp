@@ -6,10 +6,6 @@ XYZ::XYZ(double x, double y, double z)
 {
 }
 
-XYZ::XYZ()
-{
-}
-
 XYZ XYZ::operator+(double a) const
 {
     return {
