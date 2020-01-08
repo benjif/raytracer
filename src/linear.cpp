@@ -1,11 +1,6 @@
 #include <cmath>
 #include "linear.h"
 
-XYZ::XYZ(double x, double y, double z)
-    : x(x), y(y), z(z)
-{
-}
-
 XYZ XYZ::operator+(double a) const
 {
     return {

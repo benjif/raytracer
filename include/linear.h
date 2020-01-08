@@ -6,9 +6,6 @@ struct XYZ {
     double y;
     double z;
 
-    XYZ() = default;
-    XYZ(double, double, double);
-
     XYZ normal() const;
     double magnitude() const;
 

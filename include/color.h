@@ -13,9 +13,6 @@ struct Color {
     uint8_t b;
     uint8_t a;
 
-    Color() = default;
-    Color(uint8_t, uint8_t, uint8_t);
-
     Color operator+(uint8_t) const;
     Color operator-(uint8_t) const;
     Color operator*(uint8_t) const;

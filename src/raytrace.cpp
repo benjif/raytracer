@@ -132,7 +132,7 @@ Raytracer::Raytracer(unsigned w, unsigned h)
     : m_width(w),
       m_height(h),
       m_image(w, h),
-      m_camera(w/2, h/2, -620)
+      m_camera({ (double)w/2, (double)h/2, -620 })
 {
     srand(time(NULL));
 }
